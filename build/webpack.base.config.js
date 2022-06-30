@@ -2,6 +2,7 @@ const path = require('path');
 const HTMLWebpackPlugin = require('html-webpack-plugin');
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const ESLintPlugin = require('eslint-webpack-plugin');
 
 const PATHS = {
     src: path.join(__dirname, '../src'),
@@ -35,6 +36,11 @@ module.exports = {
     module: {
         rules: [
             {
+                test: /\.js$/,
+                loader: 'babel-loader',
+                exclude: /(node_modules)/,
+            },
+            {
                 test: /\.scss$/,
                 use: [
                     'style-loader',
@@ -48,7 +54,7 @@ module.exports = {
                     },
                     {
                         loader: 'postcss-loader',
-                        options: { sourceMap: true, postcssOptions: { config: path.resolve(__dirname, "./postcss.config.js") } }
+                        options: { sourceMap: true, postcssOptions: { config: path.resolve(__dirname, './postcss.config.js') } },
                     },
                     {
                         loader: 'sass-loader',
@@ -64,6 +70,13 @@ module.exports = {
         }),
         new MiniCssExtractPlugin({
             filename: 'css/[name].min.css',
+        }),
+        new ESLintPlugin({
+            extensions: ['js'],
+            exclude: ['node_modules'],
+            emitError: true,
+            emitWarning: false,
+            fix: true,
         }),
         new CleanWebpackPlugin(),
     ],
