@@ -5,6 +5,8 @@ const devWebpackConfig = merge(baseWebpackConfig, {
     mode: 'development',
     devServer: {
         port: 8080,
+        hot: false,
+        liveReload: true,
     },
     plugins: [],
 });
