@@ -13,5 +13,6 @@ module.exports = {
   rules: {
 	  'no-tabs': 'off',
 	  'indent': 'off',
+    'import/prefer-default-export': 'off',
   },
 };

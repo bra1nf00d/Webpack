@@ -14,7 +14,7 @@ const PUBLIC = process.env.NODE_ENV === 'production' ? './' : '/';
 
 module.exports = {
     entry: {
-        app: [`${PATHS.src}/js/index.js`],
+        app: [`${PATHS.src}/index.js`],
     },
     output: {
         filename: 'js/[name].[contenthash].js',
@@ -95,7 +95,9 @@ module.exports = {
     plugins: [
         new HTMLWebpackPlugin({
             template: `${PATHS.src}/index.html`,
-        }),
+			inject: true,
+			minify: false,
+		}),
         new MiniCssExtractPlugin({
             filename: 'css/[name].min.css',
         }),
