@@ -1,5 +1,3 @@
-import '../scss/main.scss';
-
 console.log('Hello Webpack');
 
 const promise = new Promise((resolve) => {
