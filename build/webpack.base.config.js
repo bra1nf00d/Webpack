@@ -42,6 +42,14 @@ module.exports = {
     module: {
         rules: [
             {
+                test: /\.html$/,
+                include: `${PATHS.src}/**`,
+                use: [{
+                    loader: 'html-loader',
+                    options: { interpolate: true },
+                }],
+            },
+            {
                 test: /\.js$/,
                 loader: 'babel-loader',
                 exclude: /(node_modules)/,
