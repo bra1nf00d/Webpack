@@ -1,6 +1,7 @@
 const fs = require('fs');
 const path = require('path');
-const HTMLWebpackPlugin = require('html-webpack-plugin');
+const HtmlWebpackPlugin = require('html-webpack-plugin');
+const InterpolateHtmlPlugin = require('@gozenc/interpolate-html-plugin');
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
@@ -40,14 +41,18 @@ module.exports = {
         },
     },
     module: {
-        rules: [
+		strictExportPresence: true,
+		rules: [
+			{
+				test: /\.hbs$/,
+				loader: 'handlebars-loader',
+				options: {
+					inlineRequires: 'assets/img',
+				},
+			},
             {
                 test: /\.html$/,
-                include: resolveApp('src/**'),
-                use: [{
-                    loader: 'html-loader',
-                    options: { interpolate: true },
-                }],
+				loader: 'html-loader',
             },
             {
                 test: /\.js$/,
@@ -93,10 +98,15 @@ module.exports = {
         ],
     },
     plugins: [
-        new HTMLWebpackPlugin({
-            template: resolveApp('src/index.html'),
+		new HtmlWebpackPlugin({
 			inject: true,
-			minify: false,
+			template: resolveApp('src/views/index.hbs'),
+			filename: resolveApp('dist/index.html'),
+		}),
+		new InterpolateHtmlPlugin(HtmlWebpackPlugin, {
+			PUBLIC_URL: isEnvProduction
+				? '.'
+				: '',
 		}),
         new MiniCssExtractPlugin({
             filename: 'css/[name].min.css',
