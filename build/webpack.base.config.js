@@ -24,7 +24,8 @@ module.exports = {
 			? './'
 			: '/',
 		filename: 'js/[name].[contenthash:8].js',
-    },
+		assetModuleFilename: 'assets/img/[name].[hash][ext]',
+	},
     resolve: {
         extensions: ['.js', '.json'],
     },
@@ -55,46 +56,41 @@ module.exports = {
 				loader: 'html-loader',
             },
             {
-                test: /\.js$/,
-                loader: 'babel-loader',
-                exclude: /(node_modules)/,
-            },
-            {
-                test: /\.(woff(2)?|ttf|eot|svg)(\?v=\d+\.\d+\.\d+)?$/,
-                loader: 'file-loader',
-                options: {
-                    name: '[name].[ext]',
-                },
-            },
-            {
-                test: /\.(png|jpg|gif|svg)$/,
-                loader: 'file-loader',
-                options: {
-                    name: '[name].[ext]',
-                },
-            },
-            {
                 test: /\.scss$/,
                 use: [
                     'style-loader',
                     {
                         loader: MiniCssExtractPlugin.loader,
-                        options: { esModule: false },
+                        options: { esModule: false, publicPath: '../' },
                     },
-                    {
-                        loader: 'css-loader',
-                        options: { sourceMap: true, url: false },
-                    },
+					'css-loader',
                     {
                         loader: 'postcss-loader',
                         options: { sourceMap: true, postcssOptions: { config: path.resolve(__dirname, './postcss.config.js') } },
                     },
-                    {
-                        loader: 'sass-loader',
-                        options: { sourceMap: true },
-                    },
+					'sass-loader',
                 ],
             },
+			{
+				test: /\.js$/,
+				loader: 'babel-loader',
+				exclude: /(node_modules)/,
+			},
+			{
+				test: /\.(png|jpe?g|gif)$/,
+				type: 'asset',
+			},
+			{
+				test: /\.svg$/,
+				type: 'asset/resource',
+			},
+			{
+				test: /\.(woff(2)?|ttf|eot)(\?v=\d+\.\d+\.\d+)?$/,
+				type: 'asset/resource',
+				generator: {
+					filename: 'assets/fonts/[name].[hash][ext]',
+				},
+			},
         ],
     },
     plugins: [
@@ -110,12 +106,6 @@ module.exports = {
 		}),
         new MiniCssExtractPlugin({
             filename: 'css/[name].min.css',
-        }),
-        new CopyWebpackPlugin({
-            patterns: [
-                { from: resolveApp('src/assets/img'), to: 'assets/img' },
-                { from: resolveApp('src/assets/fonts'), to: 'assets/fonts' },
-            ],
         }),
         new ESLintPlugin({
             extensions: ['js'],

@@ -1,0 +1,17 @@
+
+// include font-face
+@mixin font-face($font-family, $url, $weight) {
+	@font-face {
+		font-family: "#{$font-family}";
+		src: url("../assets/fonts/#{$url}.woff") format("woff"),
+		url('../assets/fonts/#{$url}.woff2') format('woff2');
+		font-weight: #{$weight};
+		font-style: normal;
+
+		@if ($font-family == "icon") {
+			font-display: block;
+		} @else {
+			font-display: swap;
+		}
+	}
+}
