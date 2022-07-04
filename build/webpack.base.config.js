@@ -114,6 +114,11 @@ module.exports = {
             emitWarning: false,
             fix: true,
         }),
+		new CopyWebpackPlugin({
+			patterns: [
+				{ from: resolveApp('public'), to: resolveApp('dist') },
+			],
+		}),
         new CleanWebpackPlugin(),
     ],
 };
