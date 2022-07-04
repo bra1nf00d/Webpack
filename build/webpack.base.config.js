@@ -1,3 +1,4 @@
+const fs = require('fs');
 const path = require('path');
 const HTMLWebpackPlugin = require('html-webpack-plugin');
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
@@ -5,27 +6,26 @@ const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 const ESLintPlugin = require('eslint-webpack-plugin');
 
-const PATHS = {
-    src: path.join(__dirname, '../src'),
-    dist: path.join(__dirname, '../dist'),
-};
+const appDirectory = fs.realpathSync(process.cwd());
 
-const PUBLIC = process.env.NODE_ENV === 'production' ? './' : '/';
+const resolveApp = (relativePath) => path.resolve(appDirectory, relativePath);
+
+const isEnvDevelopment = process.env.NODE_ENV === 'development';
+const isEnvProduction = process.env.NODE_ENV === 'production';
 
 module.exports = {
     entry: {
-        app: [`${PATHS.src}/index.js`],
+        app: resolveApp('src/index.js'),
     },
     output: {
-        filename: 'js/[name].[contenthash].js',
-        path: PATHS.dist,
-        publicPath: `${PUBLIC}`,
+		path: resolveApp('dist'),
+		publicPath: isEnvProduction
+			? './'
+			: '/',
+		filename: 'js/[name].[contenthash:8].js',
     },
     resolve: {
         extensions: ['.js', '.json'],
-        alias: {
-            '~': PATHS.src,
-        },
     },
     optimization: {
         splitChunks: {
@@ -43,7 +43,7 @@ module.exports = {
         rules: [
             {
                 test: /\.html$/,
-                include: `${PATHS.src}/**`,
+                include: resolveApp('src/**'),
                 use: [{
                     loader: 'html-loader',
                     options: { interpolate: true },
@@ -94,7 +94,7 @@ module.exports = {
     },
     plugins: [
         new HTMLWebpackPlugin({
-            template: `${PATHS.src}/index.html`,
+            template: resolveApp('src/index.html'),
 			inject: true,
 			minify: false,
 		}),
@@ -103,8 +103,8 @@ module.exports = {
         }),
         new CopyWebpackPlugin({
             patterns: [
-                { from: `${PATHS.src}/assets/img`, to: 'assets/img' },
-                { from: `${PATHS.src}/assets/fonts`, to: 'assets/fonts' },
+                { from: resolveApp('src/assets/img'), to: 'assets/img' },
+                { from: resolveApp('src/assets/fonts'), to: 'assets/fonts' },
             ],
         }),
         new ESLintPlugin({
