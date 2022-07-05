@@ -11,7 +11,6 @@ const appDirectory = fs.realpathSync(process.cwd());
 
 const resolveApp = (relativePath) => path.resolve(appDirectory, relativePath);
 
-const isEnvDevelopment = process.env.NODE_ENV === 'development';
 const isEnvProduction = process.env.NODE_ENV === 'production';
 
 module.exports = {
