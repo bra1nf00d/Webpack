@@ -1,31 +1,33 @@
+const fs = require('fs');
 const path = require('path');
-const HTMLWebpackPlugin = require('html-webpack-plugin');
+const HtmlWebpackPlugin = require('html-webpack-plugin');
+const InterpolateHtmlPlugin = require('@gozenc/interpolate-html-plugin');
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 const ESLintPlugin = require('eslint-webpack-plugin');
 
-const PATHS = {
-    src: path.join(__dirname, '../src'),
-    dist: path.join(__dirname, '../dist'),
-};
+const appDirectory = fs.realpathSync(process.cwd());
 
-const PUBLIC = process.env.NODE_ENV === 'production' ? './' : '/';
+const resolveApp = (relativePath) => path.resolve(appDirectory, relativePath);
+
+const isEnvDevelopment = process.env.NODE_ENV === 'development';
+const isEnvProduction = process.env.NODE_ENV === 'production';
 
 module.exports = {
     entry: {
-        app: [`${PATHS.src}/index.js`],
+        app: resolveApp('src/index.js'),
     },
     output: {
-        filename: 'js/[name].[contenthash].js',
-        path: PATHS.dist,
-        publicPath: `${PUBLIC}`,
-    },
+		path: resolveApp('dist'),
+		publicPath: isEnvProduction
+			? './'
+			: '/',
+		filename: 'js/[name].[contenthash:8].js',
+		assetModuleFilename: 'assets/img/[name].[hash][ext]',
+	},
     resolve: {
         extensions: ['.js', '.json'],
-        alias: {
-            '~': PATHS.src,
-        },
     },
     optimization: {
         splitChunks: {
@@ -40,33 +42,18 @@ module.exports = {
         },
     },
     module: {
-        rules: [
+		strictExportPresence: true,
+		rules: [
+			{
+				test: /\.hbs$/,
+				loader: 'handlebars-loader',
+				options: {
+					inlineRequires: 'assets/img',
+				},
+			},
             {
                 test: /\.html$/,
-                include: `${PATHS.src}/**`,
-                use: [{
-                    loader: 'html-loader',
-                    options: { interpolate: true },
-                }],
-            },
-            {
-                test: /\.js$/,
-                loader: 'babel-loader',
-                exclude: /(node_modules)/,
-            },
-            {
-                test: /\.(woff(2)?|ttf|eot|svg)(\?v=\d+\.\d+\.\d+)?$/,
-                loader: 'file-loader',
-                options: {
-                    name: '[name].[ext]',
-                },
-            },
-            {
-                test: /\.(png|jpg|gif|svg)$/,
-                loader: 'file-loader',
-                options: {
-                    name: '[name].[ext]',
-                },
+				loader: 'html-loader',
             },
             {
                 test: /\.scss$/,
@@ -74,38 +61,51 @@ module.exports = {
                     'style-loader',
                     {
                         loader: MiniCssExtractPlugin.loader,
-                        options: { esModule: false },
+                        options: { esModule: false, publicPath: '../' },
                     },
-                    {
-                        loader: 'css-loader',
-                        options: { sourceMap: true, url: false },
-                    },
+					'css-loader',
                     {
                         loader: 'postcss-loader',
                         options: { sourceMap: true, postcssOptions: { config: path.resolve(__dirname, './postcss.config.js') } },
                     },
-                    {
-                        loader: 'sass-loader',
-                        options: { sourceMap: true },
-                    },
+					'sass-loader',
                 ],
             },
+			{
+				test: /\.js$/,
+				loader: 'babel-loader',
+				exclude: /(node_modules)/,
+			},
+			{
+				test: /\.(png|jpe?g|gif)$/,
+				type: 'asset',
+			},
+			{
+				test: /\.svg$/,
+				type: 'asset/resource',
+			},
+			{
+				test: /\.(woff(2)?|ttf|eot)(\?v=\d+\.\d+\.\d+)?$/,
+				type: 'asset/resource',
+				generator: {
+					filename: 'assets/fonts/[name].[hash][ext]',
+				},
+			},
         ],
     },
     plugins: [
-        new HTMLWebpackPlugin({
-            template: `${PATHS.src}/index.html`,
+		new HtmlWebpackPlugin({
 			inject: true,
-			minify: false,
+			template: resolveApp('src/views/index.hbs'),
+			filename: resolveApp('dist/index.html'),
+		}),
+		new InterpolateHtmlPlugin(HtmlWebpackPlugin, {
+			PUBLIC_URL: isEnvProduction
+				? '.'
+				: '',
 		}),
         new MiniCssExtractPlugin({
             filename: 'css/[name].min.css',
-        }),
-        new CopyWebpackPlugin({
-            patterns: [
-                { from: `${PATHS.src}/assets/img`, to: 'assets/img' },
-                { from: `${PATHS.src}/assets/fonts`, to: 'assets/fonts' },
-            ],
         }),
         new ESLintPlugin({
             extensions: ['js'],
@@ -114,6 +114,11 @@ module.exports = {
             emitWarning: false,
             fix: true,
         }),
+		new CopyWebpackPlugin({
+			patterns: [
+				{ from: resolveApp('public'), to: resolveApp('dist') },
+			],
+		}),
         new CleanWebpackPlugin(),
     ],
 };
