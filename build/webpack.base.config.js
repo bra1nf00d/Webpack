@@ -13,6 +13,9 @@ const resolveApp = (relativePath) => path.resolve(appDirectory, relativePath);
 
 const isEnvProduction = process.env.NODE_ENV === 'production';
 
+const VIEWS = fs.readdirSync(resolveApp('src/views'))
+	.filter((view) => view.includes('.html') || view.includes('.hbs'));
+
 module.exports = {
     entry: {
         app: resolveApp('src/index.js'),
@@ -93,10 +96,17 @@ module.exports = {
         ],
     },
     plugins: [
-		new HtmlWebpackPlugin({
-			inject: true,
-			template: resolveApp('src/views/index.hbs'),
-			filename: resolveApp('dist/index.html'),
+		...VIEWS.map((view) => {
+			const filename = view.split('.')[0];
+			const asHtml = `${filename}.html`;
+
+			return new HtmlWebpackPlugin({
+				template: resolveApp(`src/views/${view}`),
+				filename: resolveApp(`dist/${asHtml}`),
+				inject: true,
+				minify: false,
+				esModule: false,
+			});
 		}),
 		new InterpolateHtmlPlugin(HtmlWebpackPlugin, {
 			PUBLIC_URL: isEnvProduction
